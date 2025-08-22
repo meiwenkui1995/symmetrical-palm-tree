@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出差行程记录器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        h1 {
+            color: #2563eb;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #f9fafb;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #2563eb;
+        }
+        
+        .dual-input {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .dual-input > div {
+            flex: 1;
+        }
+        
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 16px 0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            background: #1d4ed8;
+        }
+        
+        button.secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        button.secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        #resultsCard {
+            display: none;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-item .value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .result-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .history-item {
+            background: #f9fafb;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .history-date {
+            font-weight: 600;
+            color: #2563eb;
+            font-size: 1.1rem;
+        }
+        
+        .history-route {
+            font-weight: 500;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .history-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .history-actions button {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .action-delete {
+            background: #ef4444;
+        }
+        
+        .action-delete:hover {
+            background: #dc2626;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        
+        .close-modal:hover {
+            background: #f3f4f6;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .dual-input {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-road"></i> 出差行程记录器</h1>
+        <p>记录出差行程，自动计算报销金额</p>
+    </header>
+    
+    <main>
+        <section id="formSection" class="card">
+            <h2><i class="fas fa-file-alt"></i> 行程信息</h2>
+            <div class="form-group">
+                <label for="date">日期</label>
+                <input type="date" id="date" required>
+            </div>
+            
+            <div class="dual-input">
+                <div class="form-group">
+                    <label for="from">出发地</label>
+                    <input type="text" id="from" placeholder="例如：北京" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="to">目的地</label>
+                    <input type="text" id="to" placeholder="例如：上海" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="distance">里程（公里）</label>
+                <input type="number" id="distance" min="0" step="0.1" placeholder="例如：256.5" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="rate">报销标准（元/公里）</label>
+                <input type="number" id="rate" min="0" step="0.1" value="1.8" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="purpose">出差事项</label>
+                <input type="text" id="purpose" placeholder="例如：客户拜访" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">备注</label>
+                <textarea id="notes" rows="2" placeholder="其他说明信息"></textarea>
+            </div>
+            
+            <h2 style="margin-top: 20px; margin-bottom: 15px;"><i class="fas fa-calculator"></i> 费用信息</h2>
+            
+            <div class="dual-input">
+                <div class="form-group">
+                    <label for="highway">高速费（元）</label>
+                    <input type="number" id="highway" min="0" step="0.01" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="hotelFee">酒店费用（元）</label>
+                    <input type="number" id="hotelFee" min="0" step="0.01" value="0">
+                </div>
+            </div>
+            
+            <div class="dual-input">
+                <div class="form-group">
+                    <label for="fuelConsumption">油耗（L/100km）</label>
+                    <input type="number" id="fuelConsumption" min="0" step="0.1" value="0" placeholder="例如：8.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fuelPrice">当前油价（元/L）</label>
+                    <input type="number" id="fuelPrice" min="0" step="0.01" value="0" placeholder="例如：7.85">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="hotelName">酒店名称</label>
+                <input type="text" id="hotelName" placeholder="例如：如家酒店北京分店">
+            </div>
+            
+            <button id="calculateBtn">
+                <i class="fas fa-calculator"></i> 计算报销额度
+            </button>
+        </section>
+        
+        <section id="resultsCard" class="card">
+            <h2><i class="fas fa-receipt"></i> 报销计算结果</h2>
+            
+            <div class="result-item">
+                <span>交通报销：</span>
+                <span id="transportResult" class="value">0.00 元</span>
+            </div>
+            
+            <div class="result-item">
+                <span>油耗成本：</span>
+                <span id="fuelCostResult" class="value">0.00 元</span>
+            </div>
+            
+            <div class="result-item">
+                <span>高速费用：</span>
+                <span id="highwayResult" class="value">0.00 元</span>
+            </div>
+            
+            <div class="result-item">
+                <span>酒店费用：</span>
+                <span id="hotelResult" class="value">0.00 元</span>
+            </div>
+            
+            <div class="result-item" style="padding: 16px 0;">
+                <span style="font-size: 1.2rem;">结余：</span>
+                <span id="balanceResult" class="value result-total">0.00 元</span>
+            </div>
+            
+            <div class="result-item">
+                <span style="font-weight: 600; font-size: 1.2rem;">总报销金额：</span>
+                <span id="totalResult" class="value result-total">0.00 元</span>
+            </div>
+            
+            <div class="dual-input" style="margin-top: 20px;">
+                <button id="saveBtn" class="secondary">
+                    <i class="fas fa-save"></i> 保存行程
+                </button>
+                <button id="newBtn">
+                    <i class="fas fa-plus"></i> 新建行程
+                </button>
+            </div>
+        </section>
+        
+        <section class="card" id="historySection">
+            <h2><i class="fas fa-history"></i> 历史记录</h2>
+            <div id="historyList" style="margin-top: 15px;">
+                <!-- 历史记录会动态生成在这里 -->
+            </div>
+            <button id="exportBtn" class="secondary" style="margin-top: 15px;">
+                <i class="fas fa-file-export"></i> 导出为文档
+            </button>
+        </section>
+    </main>
+    
+    <div id="taxiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">请输入打车费用</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="taxiFee">打车费用（元）</label>
+                <input type="number" id="taxiFee" min="0" step="0.01" value="0" required>
+            </div>
+            <div class="modal-footer">
+                <button id="saveTaxiBtn">
+                    <i class="fas fa-check"></i> 确认
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 设置默认日期为今天
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('date').value = today;
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 绑定事件
+            document.getElementById('calculateBtn').addEventListener('click', calculateReimbursement);
+            document.getElementById('saveBtn').addEventListener('click', saveTrip);
+            document.getElementById('newBtn').addEventListener('click', resetForm);
+            document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('taxiModal').style.display = 'none';
+                });
+            });
+            document.getElementById('saveTaxiBtn').addEventListener('click', processTaxiFee);
+        });
+        
+        // 计算报销金额
+        function calculateReimbursement() {
+            // 获取表单值
+            const distance = parseFloat(document.getElementById('distance').value) || 0;
+            const rate = parseFloat(document.getElementById('rate').value) || 1.8;
+            const hotelFee = parseFloat(document.getElementById('hotelFee').value) || 0;
+            const highway = parseFloat(document.getElementById('highway').value) || 0;
+            const fuelConsumption = parseFloat(document.getElementById('fuelConsumption').value) || 0;
+            const fuelPrice = parseFloat(document.getElementById('fuelPrice').value) || 0;
+            
+            // 判断是否为打车行程
+            if (distance === 1) {
+                document.getElementById('taxiModal').style.display = 'flex';
+                return;
+            }
+            
+            // 计算各项费用
+            const transportReimbursement = distance * rate;
+            const fuelCost = (distance / 100) * fuelConsumption * fuelPrice;
+            const balance = transportReimbursement - fuelCost;
+            const totalReimbursement = transportReimbursement + hotelFee + highway;
+            
+            // 显示结果
+            showResults(transportReimbursement, fuelCost, highway, hotelFee, balance, totalReimbursement);
+        }
+        
+        // 处理打车费用
+        function processTaxiFee() {
+            const taxiFee = parseFloat(document.getElementById('taxiFee').value) || 0;
+            document.getElementById('taxiModal').style.display = 'none';
+            
+            // 获取其他值
+            const hotelFee = parseFloat(document.getElementById('hotelFee').value) || 0;
+            const highway = parseFloat(document.getElementById('highway').value) || 0;
+            
+            // 设置计算结果
+            const transportReimbursement = taxiFee;
+            const fuelCost = 0;
+            const balance = 0;
+            const totalReimbursement = taxiFee + hotelFee + highway;
+            
+            // 显示结果
+            showResults(transportReimbursement, fuelCost, highway, hotelFee, balance, totalReimbursement);
+        }
+        
+        // 显示计算结果
+        function showResults(transport, fuel, highway, hotel, balance, total) {
+            document.getElementById('transportResult').textContent = transport.toFixed(2) + ' 元';
+            document.getElementById('fuelCostResult').textContent = fuel.toFixed(2) + ' 元';
+            document.getElementById('highwayResult').textContent = highway.toFixed(2) + ' 元';
+            document.getElementById('hotelResult').textContent = hotel.toFixed(2) + ' 元';
+            document.getElementById('balanceResult').textContent = balance.toFixed(2) + ' 元';
+            document.getElementById('totalResult').textContent = total.toFixed(2) + ' 元';
+            
+            // 显示结果卡片
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 保存行程
+        function saveTrip() {
+            // 获取表单值
+            const trip = {
+                id: Date.now(),
+                date: document.getElementById('date').value,
+                from: document.getElementById('from').value,
+                to: document.getElementById('to').value,
+                distance: parseFloat(document.getElementById('distance').value) || 0,
+                rate: parseFloat(document.getElementById('rate').value) || 1.8,
+                purpose: document.getElementById('purpose').value,
+                notes: document.getElementById('notes').value,
+                highway: parseFloat(document.getElementById('highway').value) || 0,
+                fuelConsumption: parseFloat(document.getElementById('fuelConsumption').value) || 0,
+                fuelPrice: parseFloat(document.getElementById('fuelPrice').value) || 0,
+                hotelName: document.getElementById('hotelName').value,
+                hotelFee: parseFloat(document.getElementById('hotelFee').value) || 0,
+                transportReimbursement: parseFloat(document.getElementById('transportResult').textContent) || 0,
+                fuelCost: parseFloat(document.getElementById('fuelCostResult').textContent) || 0,
+                balance: parseFloat(document.getElementById('balanceResult').textContent) || 0,
+                totalReimbursement: parseFloat(document.getElementById('totalResult').textContent) || 0,
+                isTaxi: (parseFloat(document.getElementById('distance').value) === 1)
+            };
+            
+            // 获取现有行程或创建新数组
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            trips.push(trip);
+            
+            // 保存到本地存储
+            localStorage.setItem('travelTrips', JSON.stringify(trips));
+            
+            // 重新加载历史记录
+            loadHistory();
+            
+            // 重置表单
+            resetForm();
+            
+            // 显示成功消息
+            alert('行程已成功保存！');
+        }
+        
+        // 重置表单
+        function resetForm() {
+            document.getElementById('formSection').reset();
+            document.getElementById('rate').value = 1.8;
+            document.getElementById('date').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('resultsCard').style.display = 'none';
+        }
+        
+        // 加载历史记录
+        function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            
+            if (trips.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; padding: 20px; color: #6b7280;">暂无行程记录</p>';
+                return;
+            }
+            
+            // 按日期排序（最近在前）
+            trips.sort((a, b) => b.id - a.id);
+            
+            // 生成历史记录列表
+            trips.forEach(trip => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.dataset.id = trip.id;
+                
+                historyItem.innerHTML = `
+                    <div class="history-header">
+                        <div class="history-date">${trip.date}</div>
+                        <div>${trip.totalReimbursement.toFixed(2)}元</div>
+                    </div>
+                    <div class="history-route">${trip.from} → ${trip.to}</div>
+                    <div>里程: ${trip.distance}公里 | 事项: ${trip.purpose}</div>
+                    <div class="history-actions">
+                        <button class="secondary view-detail" data-id="${trip.id}">
+                            <i class="fas fa-eye"></i> 详情
+                        </button>
+                        <button class="secondary edit-trip" data-id="${trip.id}">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="action-delete delete-trip" data-id="${trip.id}">
+                            <i class="fas fa-trash-alt"></i> 删除
+                        </button>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
+            });
+            
+            // 绑定历史记录操作事件
+            document.querySelectorAll('.view-detail').forEach(btn => {
+                btn.addEventListener('click', (e) => viewTripDetails(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.edit-trip').forEach(btn => {
+                btn.addEventListener('click', (e) => editTrip(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.delete-trip').forEach(btn => {
+                btn.addEventListener('click', (e) => deleteTrip(e.target.dataset.id));
+            });
+        }
+        
+        // 查看行程详情
+        function viewTripDetails(id) {
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            const trip = trips.find(t => t.id == id);
+            
+            if (!trip) return;
+            
+            // 创建并显示模态框
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'flex';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">行程详情</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div>
+                        <div class="result-item">
+                            <span>日期：</span>
+                            <span>${trip.date}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>行程：</span>
+                            <span>${trip.from} → ${trip.to}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>里程：</span>
+                            <span>${trip.distance} 公里</span>
+                        </div>
+                        <div class="result-item">
+                            <span>报销标准：</span>
+                            <span>${trip.rate.toFixed(2)} 元/公里</span>
+                        </div>
+                        <div class="result-item">
+                            <span>出差事项：</span>
+                            <span>${trip.purpose}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>高速费：</span>
+                            <span>${trip.highway.toFixed(2)} 元</span>
+                        </div>
+                        <div class="result-item">
+                            <span>油耗：</span>
+                            <span>${trip.fuelConsumption} L/100km</span>
+                        </div>
+                        <div class="result-item">
+                            <span>油价：</span>
+                            <span>${trip.fuelPrice.toFixed(2)} 元/L</span>
+                        </div>
+                        <div class="result-item">
+                            <span>酒店名称：</span>
+                            <span>${trip.hotelName}</span>
+                        </div>
+                        <div class="result-item">
+                            <span>酒店费用：</span>
+                            <span>${trip.hotelFee.toFixed(2)} 元</span>
+                        </div>
+                        <div class="result-item">
+                            <span>交通报销：</span>
+                            <span>${trip.transportReimbursement.toFixed(2)} 元</span>
+                        </div>
+                        <div class="result-item">
+                            <span>结余：</span>
+                            <span>${trip.balance.toFixed(2)} 元</span>
+                        </div>
+                        <div class="result-item" style="font-weight: bold;">
+                            <span>总报销金额：</span>
+                            <span>${trip.totalReimbursement.toFixed(2)} 元</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="closeDetailBtn" class="secondary">
+                            <i class="fas fa-times"></i> 关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 绑定关闭事件
+            modal.querySelector('.close-modal').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.querySelector('#closeDetailBtn').addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+        
+        // 编辑行程
+        function editTrip(id) {
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            const tripIndex = trips.findIndex(t => t.id == id);
+            
+            if (tripIndex === -1) return;
+            
+            const trip = trips[tripIndex];
+            
+            // 填充表单
+            document.getElementById('date').value = trip.date;
+            document.getElementById('from').value = trip.from;
+            document.getElementById('to').value = trip.to;
+            document.getElementById('distance').value = trip.distance;
+            document.getElementById('rate').value = trip.rate;
+            document.getElementById('purpose').value = trip.purpose;
+            document.getElementById('notes').value = trip.notes;
+            document.getElementById('highway').value = trip.highway;
+            document.getElementById('fuelConsumption').value = trip.fuelConsumption;
+            document.getElementById('fuelPrice').value = trip.fuelPrice;
+            document.getElementById('hotelName').value = trip.hotelName;
+            document.getElementById('hotelFee').value = trip.hotelFee;
+            
+            // 直接显示计算结果
+            document.getElementById('transportResult').textContent = trip.transportReimbursement.toFixed(2) + ' 元';
+            document.getElementById('fuelCostResult').textContent = trip.fuelCost.toFixed(2) + ' 元';
+            document.getElementById('highwayResult').textContent = trip.highway.toFixed(2) + ' 元';
+            document.getElementById('hotelResult').textContent = trip.hotelFee.toFixed(2) + ' 元';
+            document.getElementById('balanceResult').textContent = trip.balance.toFixed(2) + ' 元';
+            document.getElementById('totalResult').textContent = trip.totalReimbursement.toFixed(2) + ' 元';
+            
+            document.getElementById('resultsCard').style.display = 'block';
+            
+            // 移除原始记录
+            trips.splice(tripIndex, 1);
+            localStorage.setItem('travelTrips', JSON.stringify(trips));
+            
+            // 重新加载历史记录
+            loadHistory();
+            
+            // 滚动到表单
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 删除行程
+        function deleteTrip(id) {
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            const newTrips = trips.filter(trip => trip.id != id);
+            localStorage.setItem('travelTrips', JSON.stringify(newTrips));
+            loadHistory();
+        }
+        
+        // 导出为CSV文档
+        function exportToCSV() {
+            const trips = JSON.parse(localStorage.getItem('travelTrips')) || [];
+            
+            if (trips.length === 0) {
+                alert('没有行程记录可以导出');
+                return;
+            }
+            
+            // CSV表头
+            let csv = '日期,出发地,目的地,里程(公里),报销标准(元/公里),交通报销,高速费,油耗成本,酒店费用,结余,总报销金额,出差事项\n';
+            
+            // 添加数据行
+            trips.forEach(trip => {
+                csv += `${trip.date},${trip.from},${trip.to},${trip.distance},${trip.rate},${trip.transportReimbursement.toFixed(2)},${trip.highway.toFixed(2)},${trip.fuelCost.toFixed(2)},${trip.hotelFee.toFixed(2)},${trip.balance.toFixed(2)},${trip.totalReimbursement.toFixed(2)},"${trip.purpose}"\n`;
+            });
+            
+            // 创建下载链接
+            const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csv);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `出差行程记录_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            
+            // 触发下载
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
